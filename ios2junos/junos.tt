@@ -1,0 +1,24 @@
+interfaces {
+[%- FOREACH interface = interfaces %]
+    [%- IF interface.shutdown %]
+    deactivated interface [% interface.name %] {
+    [%- ELSE %]
+    interface [% interface.name %] {
+    [%- END %]
+    [%- FOREACH key IN interface.keys %]
+        [%- IF key == 'description' %]
+        description "[%- interface.$key %]";
+        [%- END %] 
+        [%- IF key == 'voice_vlan' %]
+        voice_vlan [%- interface.$key %];
+        [%- END %]
+        [%- IF key == 'access_vlan' %]
+        vlan [%- interface.$key %];
+        [%- END %]
+        [%- IF key == 'address' %]
+        address [%- interface.$key %]/[%- interface.netmask %];
+        [%- END %]
+    [%- END %]
+    } 
+[%- END %]
+}
