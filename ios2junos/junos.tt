@@ -1,3 +1,26 @@
+groups {
+[%- FOREACH key IN vlans.keys  %]
+    access-[% vlans.$key %] {
+        interfaces {
+            <*> {
+                unit 0 {
+                    family ethernet-switching {
+                        port-mode access;
+                        vlan {
+                            members v[% key %];
+                        }
+                    }
+                }
+            }
+        }
+    }
+[%- END %]
+}
+
+system {
+    host-name [%- hostname %];
+}
+
 interfaces {
 [%- FOREACH interface = interfaces %]
     [%- IF interface.shutdown %]
@@ -9,11 +32,8 @@ interfaces {
         [%- IF key == 'description' %]
         description "[%- interface.$key %]";
         [%- END %] 
-        [%- IF key == 'voice_vlan' %]
-        voice_vlan [%- interface.$key %];
-        [%- END %]
         [%- IF key == 'access_vlan' %]
-        vlan [%- interface.$key %];
+        apply-groups [%- interface.$key %];
         [%- END %]
         [%- IF key == 'address' %]
         address [%- interface.$key %]/[%- interface.netmask %];
@@ -21,4 +41,32 @@ interfaces {
     [%- END %]
     } 
 [%- END %]
+}
+
+snmp {
+    location "[%- location %]";
+}
+
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop [%- gateway %];
+    }
+}
+
+ethernet-swmtching-options {
+    voip {
+        interface access-ports {
+        [%- FOREACH key IN voice_vlan.keys %]
+            vlan v[%- key %];
+        [%- END %]
+    }
+}
+
+vlans {
+    [%- FOREACH key IN vlans.keys %]
+    v[%- key %] {
+        description [%- vlans.$key %];
+        vlan-id [%- key %];
+    }
+    [%- END %]
 }
